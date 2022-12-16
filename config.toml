@@ -1,4 +1,4 @@
-baseURL = "/"
+baseURL = "karamccormack.netlify.app/"
 theme = "hugo-apero"
 languageCode = "en"
 title = "Kara McCormack"
