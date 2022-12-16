@@ -8,7 +8,7 @@ images:
 - img/revoir.jpg
 show_action_link: true
 show_social_links: true
-subtitle: Biostatistics PhD Candidate
+subtitle: Aspiring Statistics and Data Science Educator
 text_align_left: false
 title: Kara McCormack
 type: home

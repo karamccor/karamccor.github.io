@@ -90,9 +90,17 @@ enableEmoji = true
       icon_pack = "fab"
       url       = "https://github.com/karamccor"
   [[params.social]]
+      icon      = "gitlab" # icon name without the 'fa-'
+      icon_pack = "fab"
+      url       = "https://gitlab.oit.duke.edu/kem81"
+  [[params.social]]
       icon      = "orcid" # icon name without the 'fa-'
       icon_pack = "ai"
       url       = "https://orcid.org/0000-0001-9082-9661"
+  [[params.social]]
+      icon      = "linkedin" # icon name without the 'fa-'
+      icon_pack = "fab"
+      url       = "https://www.linkedin.com/in/karamccormack22/"
 
 [taxonomies]
   category = "categories"
@@ -102,20 +110,25 @@ enableEmoji = true
 [menu]
   # Configure header 
   [[menu.header]]
-    name = "CV"
+    name = "About"
     title = "About"
-    url = "/cv/"
+    url = "/about/"
     weight = 1
   [[menu.header]]
-    name = "Teaching Statement"
-    title = "Teaching Statement"
-    url = "/teachingstatement/"
+    name = "Blog"
+    title = "blog"
+    url = "/blog/"
     weight = 2
   [[menu.header]]
-    name = "Diversity"
-    title = "Diversity"
-    url = "/diversity/"
+    name = "Collection"
+    title = "Collection"
+    url = "/collection/"
     weight = 3
+  [[menu.header]]
+    name = "CV"
+    title = "cv"
+    url = "/cv/CV_Oct_2022.pdf"
+    weight = 4
     
   # Configure footer  
   [[menu.footer]]
@@ -123,16 +136,7 @@ enableEmoji = true
     title = "License"
     url = "/license/"
     weight = 1
-  [[menu.footer]]
-    name = "Contact"
-    title = "Contact form"
-    url = "/contact/"
-    weight = 2
-  [[menu.footer]]
-    name = "Contributors"
-    title = "Contributors"
-    url = "/contributors/"
-    weight = 3
+
 
 # see https://gohugo.io/about/hugo-and-gdpr/    
 [privacy]
