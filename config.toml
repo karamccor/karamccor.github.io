@@ -119,7 +119,11 @@ enableEmoji = true
     title = "Teaching"
     url = "/teaching/"
     weight = 2
-
+    [[menu.header]]
+    name = "Diversity"
+    title = "Diversity"
+    url = "/diversity/"
+    weight = 3
     
   # Configure footer  
   [[menu.footer]]
