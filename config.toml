@@ -30,7 +30,7 @@ enableEmoji = true
 [params]
   orgName = "Kara McCormack"
   orgLocal = ""
-  description = "Aspiring statistics and data science educator."
+  description = "Biostatistics PhD Candidate"
   favicon = "/img/favicon.ico"
   logo = "/img/blogophonic-mark-dark.png"
   mainSections = ["blog", "project", "talk"]
@@ -109,26 +109,17 @@ enableEmoji = true
 
 [menu]
   # Configure header 
-  [[menu.header]]
-    name = "About"
-    title = "About"
-    url = "/about/"
-    weight = 1
-  [[menu.header]]
-    name = "Blog"
-    title = "blog"
-    url = "/blog/"
-    weight = 2
-  [[menu.header]]
-    name = "Collection"
-    title = "Collection"
-    url = "/collection/"
-    weight = 3
-  [[menu.header]]
+    [[menu.header]]
     name = "CV"
     title = "cv"
-    url = "/cv/CV_Oct_2022.pdf"
-    weight = 4
+    url = "/cv/"
+    weight = 1
+  [[menu.header]]
+    name = "Teaching"
+    title = "Teaching"
+    url = "/teaching/"
+    weight = 2
+
     
   # Configure footer  
   [[menu.footer]]

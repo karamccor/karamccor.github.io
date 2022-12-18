@@ -1,0 +1,13 @@
+---
+title: "Food Deserts and Breast Cancer Mortality"
+author: "Kara McCormack"
+date: "2022-12-16"
+---
+
+On December 9, 2022, I presented some recent work at the San Antonio Breast Cancer Conference. This conference occurs yearly and attracts breast cancer researchers from around the world. 
+
+My project, entitled "Food Deserts, Socioeconomic Stress, and Breast Cancer Mortality", combined latent class methodology and Bayesian spatial modeling. First, we used latent class methods (a maximum-likelihood approach) to cluster US counties based on a profile of various area-level  socioeconomic variables as well as food desert variables (information on whether folks live further away from a supermarket). We hypothesized that having less access to healthy foods may be associated with worse breast cancer mortality. 
+
+In the second part of the model, we used a negative-binomial spatial model to explore associations between the classifications found in the first step and breast cancer mortality. As it turns out, the worst group in regards to socioeconomic stress and food deserts was associated with increased breast cancer mortality. 
+
+For further exploration, I plan to also incorporate area-level smoking rates and alcohol use as covariates in the spatial analysis.
