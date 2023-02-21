@@ -12,7 +12,9 @@ See my teaching statement [here](./teaching.pdf).
 
 For an interactive quiz, go [here](~/karamccor.github.io/quiz/quiz.Rmd)
 
-For the slides to the sample lecture, go [here](./lecture2.html)
+For the slides to the sample lecture, go [here](./sample_lec_UNC.pdf)
+
+
 ### Teaching Experience
 
 I've had the privilege of teaching in numerous settings with all different types of students. 
