@@ -10,6 +10,8 @@ headline: |
 
 See my teaching statement [here](./teaching.pdf). 
 
+For an interactive quiz, go [here](~/karamccor.github.io/quiz/quiz.html)
+
 ### Teaching Experience
 
 I've had the privilege of teaching in numerous settings with all different types of students. 
