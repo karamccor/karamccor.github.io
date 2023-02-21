@@ -10,7 +10,7 @@ headline: |
 
 See my teaching statement [here](./teaching.pdf). 
 
-For an interactive quiz, go [here](~/karamccor.github.io/quiz/quiz.html)
+For an interactive quiz, go [here](~/karamccor.github.io/quiz/quiz.Rmd)
 
 ### Teaching Experience
 
