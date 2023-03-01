@@ -6,13 +6,16 @@ headline: |
 
 ---
 
+### Sample Lecture UNC - March 6, 2023
+
+For the slides to the sample lecture, go [here](./lecture2_test.pdf)
+
+For a bingo card, go here.
+
 ### Teaching Statement
 
 See my teaching statement [here](./teaching.pdf). 
 
-For an interactive quiz, go [here](~/karamccor.github.io/quiz/quiz.Rmd)
-
-For the slides to the sample lecture, go [here](./lecture2_test.pdf)
 
 
 ### Teaching Experience
