@@ -12,7 +12,7 @@ See my teaching statement [here](./teaching.pdf).
 
 For an interactive quiz, go [here](~/karamccor.github.io/quiz/quiz.Rmd)
 
-For the slides to the sample lecture, go [here](./sample_lec_UNC.pdf)
+For the slides to the sample lecture, go [here](./lecture2_test.pdf)
 
 
 ### Teaching Experience
