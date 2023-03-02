@@ -10,7 +10,7 @@ headline: |
 
 For the slides to the sample lecture, go [here](./lecture2_test.pdf)
 
-For a bingo card, go here.
+For a bingo card, go [here](./online_bingo.pdf).
 
 ### Teaching Statement
 
