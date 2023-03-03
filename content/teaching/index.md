@@ -12,6 +12,8 @@ For the slides to the sample lecture, go [here](./lecture2.html)
 
 For a bingo card, go [here](./online_bingo.pdf).
 
+hello 
+
 ### Teaching Statement
 
 See my teaching statement [here](./teaching.pdf). 
