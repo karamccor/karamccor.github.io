@@ -8,7 +8,7 @@ headline: |
 
 ### Sample Lecture UNC - March 6, 2023
 
-For the slides to the sample lecture, go [here](./lecture2_test.pdf)
+For the slides to the sample lecture, go [here](./lecture2.html)
 
 For a bingo card, go [here](./online_bingo.pdf).
 
