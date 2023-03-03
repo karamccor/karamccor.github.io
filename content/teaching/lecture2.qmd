@@ -1,0 +1,870 @@
+---
+title: "Introduction to Regression"
+subtitle: "Logistic Regression"
+author: "Kara E. McCormack"
+format: 
+  revealjs:
+    theme: slides.scss
+    transition: fade
+    slide-number: true
+    incremental: true 
+    chalkboard: true
+editor: visual
+execute:
+  freeze: auto
+  echo: true
+---
+
+```{r}
+#| include: false
+# figure options
+# knitr::opts_chunk$set(
+#   fig.width = 8, 
+#   fig.asp = 0.618, 
+#   out.width = "90%",
+#   fig.retina = 3, 
+#   dpi = 300, 
+#   fig.align = "center"
+# )
+library(countdown)
+```
+
+## Topics
+
+::: nonincremental
+-   Logistic regression within GLM framework
+-   Inference: hypothesis tests, confidence intervals, interpretations
+-   Example with code
+-   Activity
+:::
+
+
+---
+
+
+## Computational Setup
+
+```{r}
+#| echo: true
+# load packages
+library(tidyverse)
+library(tidymodels)
+library(openintro)
+library(knitr)
+library(RColorBrewer)
+```
+
+```{r}
+#| echo: false
+# set default theme and larger font size for ggplot2
+ggplot2::theme_set(ggplot2::theme_minimal(base_size = 20))
+```
+
+
+
+## Assumptions
+
+::: nonincremental
+-   Familiar with linear regression
+-   Some familiarity with definition of a generalized linear model (GLM), exponential form, and link function
+-   Familiar with R and tidyverse
+:::
+
+# Logistic regression
+
+## Linear vs. logistic regression {.small}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+::: nonincremental
+-   Suppose response $Y$ takes value 1 with probability $\pi$ and value 0 with probability $1-\pi$. 
+-   Linear regression doesn't fit data well, and produces predicted probabilities below 0 and above 1. 
+-   However, logistic regression always produces probabilities between 0 and 1. 
+:::
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: false
+
+set.seed(56)
+dat <- tibble(x=runif(200, -5, 10),
+                  p=exp(-2+1*x)/(1+exp(-2+1*x)),
+                  y=rbinom(200, 1, p),
+                  y2=.3408+.0901*x,
+                  logit=log(p/(1-p)))
+dat2 <- tibble(x = c(dat$x, dat$x),
+               y = c(dat$y2, dat$p),
+               `Regression model` = c(rep("linear", 200),
+                                      rep("logistic", 200)))
+ggplot() + 
+  geom_point(data = dat, aes(x, y)) +
+  geom_line(data = dat2, aes(x, y, linetype = `Regression model`)) 
+
+```
+:::
+
+::::
+
+
+
+
+Plot from [BeyondMLR Chapter 6](https://bookdown.org/roback/bookdown-BeyondMLR/ch-logreg.html).
+
+::: {.notes}
+The solid line is a linear regression fit with least squares to the probability of success (Y=1) for a given value of X. With a binary response, the line doesn't fit the data well, and produces predicted probabilities below 0 and above 1. On the other hand, logistic regression (dashed curve) follows data closely and always produces predicted probabilities between 0 and 1. 
+:::
+
+
+---
+
+## Logistic regression setup
+::: nonincremental
+-   Suppose response $Y$ takes value 1 with probability $\pi$ and value 0 with probability $1-\pi$. Let $X$ be a predictor.
+
+-   **odds** that $Y=1$ = $\frac{\pi}{1-\pi}$: 
+-   Example: If $p(\text{win}) = .6$, then $\text{odds}(\text{win}) = \frac{.6}{1-.6} = 1.5$.
+
+-   **log odds** = $\log\big(\frac{\pi}{1-\pi}\big)$
+
+-   How do we get from $\pi$ to $\log\big(\frac{\pi}{1-\pi}\big)$? With the **logit transformation**.
+
+:::
+
+
+::: {.notes}
+https://warpwire.duke.edu/w/pXgFAA/
+Unc vs duke on saturday march 4
+acc tournament march 7-11.
+:::
+
+---
+
+
+## Odds to probabilities
+
+::: nonincremental
+- We've seen how to get from probability to odds, now how about odds to probability?
+:::
+
+**Odds**
+
+$$\omega = \frac{\pi}{1-\pi}$$
+
+**Probability**
+
+$$\pi = \frac{\omega}{1+\omega}$$
+
+---
+
+## From odds to probabilities
+
+::: nonincremental
+-   **logistic model**: $\log\big(\frac{\pi}{1-\pi}\big) = \beta_0 + \beta_1 X$ 
+-   **odds** $= \exp \{\log(\frac{\pi}{1-\pi})\}= \frac{\pi}{1-\pi}$
+
+- **probability model**: combining this w/ previous slide, we get:
+
+$$\text{probability} = \pi = \frac{\exp\{\beta_0 + \beta_1 X\}}{1+ \exp\{\beta_0 + \beta_1 X\}}$$
+:::
+
+::: {.notes}
+We can use our logistic regression model to calculate probability. 
+:::
+
+---
+
+## Acupuncture example 
+
+::: nonincremental
+-   The `openintro::migraine` dataset is from a study about ear acupuncture in treatment of migraine attacks.
+-   Treatment (area of ear associated with headache) vs. "placebo" treatment (area of ear associated with sciatica). 
+-   **Response**: `pain_free` = yes or no
+-   **Predictor**: `group` = control or treatment
+-   **Research question**: Is acupuncture treatment associated with a reduction of pain?
+:::
+
+
+---
+
+## Exploratory Data Analysis
+
+::: question
+::: nonincremental
+-   **Research question**: Is acupuncture treatment associated with a reduction of pain?
+:::
+:::
+
+```{r}
+#| echo: false
+#| fig-height: 4
+
+migraine %>%
+  ggplot(aes(x = group, fill = pain_free)) +
+  geom_bar(position = "fill") +
+  labs(y = "Proportion", 
+       title = "Acupuncture vs. Pain_free") +
+  scale_fill_brewer(palette = "Set2", 
+                    direction = -1) +
+  coord_flip()
+
+```
+
+::: {.notes}
+G. Allais et al. Ear acupuncture in the treatment of migraine attacks: a randomized trial on the efficacy of appropriate versus inappropriate acupoints. In: Neurological Sci. 32.1 (2011), pp. 173-175. 
+
+The majority of the points were located on the antero-
+internal part of the antitragus (area M) on the same side of pain. The aim of this study was to verify the therapeutic value of area M and to compare it with an area of the ear (representation of the sciatic nerve, area S) which probably does not have a therapeutic effect on migraine attacks.
+:::
+
+---
+
+## Modeling being pain-free
+
+```{r}
+#| echo: true
+
+acu_model <- glm(pain_free ~ group, 
+                  data  = migraine, 
+                 family = "binomial")
+acu_model %>%
+  tidy %>%
+  kable(digits = 3)
+```
+
+::: poll
+$$\log\Big(\frac{\hat{\pi}}{1-\hat{\pi}}\Big) = -3.091 + 1.897 \times \text{treatment}$$
+:::
+
+
+
+---
+
+## Interpreting **treatment** coefficient - log odds
+
+```{r}
+#| echo: false
+acu_model %>%
+  tidy %>%
+  kable(digits = 3)
+```
+The **log-odds** of being pain-free post-treatment are expected to be 1.897 higher for those who received treatment compared to those who did not receive treatment. 
+
+
+---
+
+## Interpreting **treatment** coefficient - odds
+
+```{r}
+#| echo: false
+acu_model %>%
+  tidy %>%
+  kable(digits = 3)
+```
+
+The **odds** of being pain-free post-treatment for those who received treatment are expected to be 6.67 (i.e. exp(1.897)) times the odds for those who received the control.
+
+---
+
+
+## Predicted log odds
+
+```{r}
+#| echo: false
+#| eval: true
+
+predict(acu_model) [1:7]
+```
+
+```{r}
+#| echo: true
+#| eval: false
+predict(acu_model)
+```
+For person 1:
+
+the predicted odds = 
+
+$$\hat{\omega} = \frac{\hat{\pi}}{{1-\hat{\pi}}} = \exp(-1.1939) = 0.303$$
+
+---
+
+## Predicted probabilities
+
+```{r}
+#| echo: true
+#| eval: false
+predict(acu_model, 
+        type = "response") #<<
+```
+
+```{r}
+#| echo: false
+predict(acu_model, 
+        type = "response")[1:7]
+```
+
+For person 1:
+
+predicted probability = 
+
+$$\hat{\pi} = \frac{\exp{(-1.1939)}}{1+\exp{(-1.1939)}} = .232$$ 
+
+
+---
+
+## Logistic regression: a GLM {.small}
+
+::: nonincremental
+-   Logistic regression is a **generalized linear model** in which we can analyze data with a dichotomous response with  $P(\text{success}=\pi)$.
+-   **Bernoulli**: Responses are either success $(Y=1)$ or failure $(Y=0)$
+
+$$P(Y=y) = \pi^y(1-\pi)^{1-y}, \quad y=0, 1$$
+
+-   **Binomial**: Each observation has $n$ bernoulli trials, each with $P(\text{success})=\pi$.
+
+$$P(Y=y) = {n \choose y}\pi^y(1-\pi)^{(n-y)} $$
+:::
+
+
+---
+
+## Binomial or Bernoulli? {.smallish}
+
+::: nonincremental
+
+1. Is exposure to a particular chemical associated with a cancer diagnosis?
+2. Absenteeism data are collected for 146 randomly selected students in New South Wales, Australia across one school year. Are demographic characteristics of children associated with absenteeism? 
+
+To submit answers: $\quad \quad \quad \quad \quad$ or click [here](https://forms.gle/Y8fwCZz3svXuQV8G6). 
+:::
+
+![](./img/qr_binomial_bernoulli_quiz.png){.absolute bottom="20" left="300" width="200" height="300"}
+
+```{r}
+#| echo: false
+library(countdown)
+countdown(minutes = 1,
+          seconds = 30,
+          margin = "1.25%")
+```
+
+
+---
+
+## Binomial or Bernoulli? Answers {.smallish}
+
+::: incremental
+
+1. Is exposure to a particular chemical associated with a cancer diagnosis?
+
+- Bernoulli: The outcome is whether or not a person was diagnosed with cancer.
+
+2. Absenteeism data are collected for 146 randomly selected students in New South Wales, Australia across one school year. Are demographic characteristics of children associated with absenteeism? 
+
+- Binomial: The outcome is the number of days a student was absent out of $n$ days in a school year. 
+
+:::
+
+---
+
+## Exponential form {.smallish}
+
+A bernoulli random variable can be written in one-parameter exponential family form, $f(y;\theta) = \exp{[a(y)b(\theta) + c(\theta) + d(y)]}$
+
+**Bernoulli**
+
+$$f(y;\pi) = \exp\Big[y \log \Big(\frac{\pi}{1-\pi}\Big) + \log(1-\pi)\Big]$$
+
+
+::: question
+What are $a(y), b(\pi), c(\pi)$, and $d(y)$?
+:::
+
+```{r}
+#| echo: false
+library(countdown)
+countdown(minutes = 1, 
+          margin = "1.25%")
+```
+
+
+
+---
+
+## Exponential form {.smallish}
+
+A bernoulli random variable can be written in one-parameter exponential family form, $f(y;\theta) = \exp{[a(y)b(\theta) + c(\theta) + d(y)]}$
+
+**Bernoulli**
+
+$$f(y;\pi) = \exp\Big[y \log \Big(\frac{\pi}{1-\pi}\Big) + \log(1-\pi)\Big]$$
+
+
+::: question
+What are $a(y), b(\pi), c(\pi)$, and $d(y)$?
+:::
+
+$a(y) = y$, $b(\pi)= \log \Big(\frac{\pi}{1-\pi}\Big)$, $c(\pi) = \log(1-\pi)$, and $d(y) = 0$.
+
+$b(\pi)$ is the **canonical link function**. 
+
+
+---
+
+
+## Assumptions of logistic regression
+
+
+::: nonincremental
+1. **Binary responses**: Response is dichotomous (only takes on two values), or is the sum of dichotomous responses.
+2. **Independence**: Observations independent of one another. 
+3. **Variance structure**: Variance of binomial random variable is $n\pi(1-\pi)$, variance highest when $\pi=0.5$.
+4. **Linearity**: Log of the odds ratio, $\log (\frac{\pi}{1-\pi})$, is a linear function of $x$.
+:::
+
+
+
+
+
+---
+
+## Hypothesis test for $\beta_j$
+
+**Hypotheses**: $H_0: \beta_j = 0$ vs $H_A: \beta_j \neq 0$
+
+::: nonincremental
+-   $H_0$: There is no linear relationship between the variable of interest and the log-odds of the response.
+
+-   $H_A$: There **is** a linear relationship between the variable of interest and the log-odds of the response.
+:::
+
+---
+
+## Hypothesis test for $\beta_j$
+
+**Hypotheses**: $H_0: \beta_j = 0$ vs $H_A: \beta_j \neq 0$
+
+**Test statistic**:
+
+$$z = \frac{\hat{\beta_j}-0}{SE_{\hat{\beta}_j}}$$
+
+**P-value**: $P(|Z|>|z|)$, where $Z\sim N(0,1)$. 
+
+---
+
+## Confidence interval for $\beta_j$
+
+Can calculate a **C% confidence interval** for $\beta_j$:
+
+$$\hat{\beta_j} \pm z^* SE_{\hat{\beta_j}}$$
+
+where $z^*$ comes from $N(0,1)$.
+
+
+This is an interval for the change in log-odds of the response for a one-unit increase in $x_j$.
+
+---
+
+## Interpretation in terms of odds
+
+The change in **odds** for every one-unit change in $x_j$. 
+
+$$\exp{\hat{\beta}_j \pm z^* SE_{\hat{\beta}_j}}$$
+
+**Interpretation**: We are $C$% confident that for every one-unit increase in $x_j$, the odds multiply by a factor of $\big\{\exp{\hat{\beta}_j - z^* SE_{\hat{\beta}_j}}\big\}$ to $\big\{\exp{\hat{\beta}_j + z^* SE_{\hat{\beta}_j}}\big\}$, holding all other variables constant. 
+
+
+
+---
+
+## Let's look at the coefficient for treatment
+
+```{r}
+#| echo: false
+acu_model %>%
+  tidy %>%
+  kable(digits = 3)
+```
+
+**Test statistic**
+
+$$z = \frac{1.897-0}{0.808} = 2.34778$$
+
+---
+
+## Let's look at the coefficient for treatment
+
+```{r}
+#| echo: false
+acu_model %>%
+  tidy %>%
+  kable(digits = 3)
+```
+
+
+**P-value**
+
+$$P(|Z| > |2.34778|)$$
+
+```{r}
+2 * pnorm(2.34778, lower.tail = FALSE)
+```
+
+
+
+---
+
+## Let's look at the coefficient for treatment
+
+```{r}
+#| echo: false
+acu_model %>%
+  tidy %>%
+  kable(digits = 3)
+```
+
+**Conclusion**: Since the p-value is quite small, we reject $H_0$. The data provide sufficient evidence that the acupuncture treatment is a statistically significant predictor of being migraine-pain-free post-treatment.
+
+
+# Multinomial Logistic Regression
+
+## Multinomial response
+
+::: nonincremental
+
+-   Suppose our response variable $y$ takes on multiple categories $1, \ldots, K$ 
+
+
+-   **Multinomial distribution**: 
+
+$$P(y=1) = \pi_1, P(y=2) = \pi_2, \ldots, P(y=K) = \pi_K$$
+
+with $\sum_{k=1}^K \pi_k = 1$
+
+
+:::
+
+---
+
+## Multinomial logistic regression
+
+::: nonincremental
+-   Choose a baseline category for the response (i.e. $y=1$). 
+
+
+$$\log\Big(\frac{\pi_{ik}}{\pi_{i1}}\Big)=\beta_{0k} + \beta_{1k}x_i$$
+
+- There is a separate equation for each level of response, relative to baseline category.
+- If we have $K$ categories of the response, will have $K-1$ equations as part of ourmultinomial logistic regression model.
+:::
+
+---
+
+## NHANES data
+
+::: nonincremental
+-   American National Health and Nutrition Examination Survey, NHANES R package, collected by the National Center for Health Statistics (NCHS)
+-   Survey: Individuals of all ages complete a health exam.
+-   Data from 2009-2010 and 2011-2012 sample years
+-   R package data adapted for educational purposes, not suitable for research
+-   For research purposes, download original files from [NCHS website](http://www.cdc.gov/nchs/nhanes.htm)
+-   `?NHANES` in R for list of variables
+
+:::
+
+---
+
+## Self-reported health vs. Age & Sleep Trouble
+
+::: nonincremental
+
+::: question
+**Research question**: Is there an association between age, trouble sleeping, and self-reported health status?
+:::
+
+- **HealthGen**: self-reported health rating: Poor, Fair, Good, VGood, or Excellent.
+- **Age**: age (years) at time of screening. Participants > 80 recorded as 80.
+- **SleepTrouble**: has told doctor that they had trouble sleeping: Yes or No. 
+  
+:::
+
+---
+
+## The data
+
+```{r}
+library(NHANES)
+nhanes_adult <- NHANES %>%
+  filter(Age >= 18) %>%
+  select(HealthGen, Age, SleepTrouble) %>%
+  drop_na() %>%
+  mutate(obs_num = 1:n())
+```
+
+```{r}
+#| echo: false
+nhanes_adult %>%
+  head() %>%
+  kable()
+```
+
+
+
+
+## Exploratory Data Analysis
+
+::: {.panel-tabset}
+### Age
+
+```{r}
+#| echo: false
+ggplot(data = nhanes_adult, aes(x = Age)) + 
+  geom_histogram() +
+  labs(title = "Distribution of Age")
+```
+
+### Trouble Sleeping
+
+```{r}
+#| echo: false
+ggplot(data = nhanes_adult, aes(x = SleepTrouble)) + 
+  geom_bar() +
+  labs(title = "Has had trouble sleeping")
+```
+
+### Self-Reported Health
+
+```{r}
+#| echo: false
+ggplot(data = nhanes_adult, aes(x = HealthGen)) + 
+  geom_bar() +
+  labs(title = "Self-reported rating of overall health")
+```
+
+:::
+
+
+---
+
+## Exploratory data analysis
+
+
+::: {.panel-tabset}
+### Age vs. Health rating
+```{r}
+#| echo: false
+#| fig-height: 5
+ggplot(data = nhanes_adult, aes(x = HealthGen, y = Age)) +
+  geom_boxplot(fill = "#fc8d59") + 
+  labs(title = "Age vs. Health Rating") +
+  coord_flip()
+```
+
+### Sleep trouble vs. Health rating
+```{r}
+#| echo: false
+#| fig-height: 5
+ggplot(data = nhanes_adult, aes(x = SleepTrouble, 
+                                fill = HealthGen)) +
+  geom_bar(position = "fill") +
+  labs(y = "Proportion", 
+       title = "Sleep Trouble vs. Health Rating") +
+  scale_fill_brewer(palette = "Spectral", 
+                    direction = -1)
+```
+:::
+
+---
+
+## Model in R
+
+::: nonincremental
+-   Use the `multinom()` function in the **nnet** R package. 
+
+```{r results = 'hide'}
+library(nnet)
+health_m <- multinom(HealthGen ~ Age + SleepTrouble, 
+                     data = nhanes_adult)
+```
+
+-   If you don't specify a baseline value of response, R defaults to first level alphabetically (i.e. excellent). 
+:::
+
+---
+
+## Output results
+```{r}
+#| echo: true
+tidy(health_m, conf.int = TRUE, exponentiate = FALSE) %>%
+  head(8) %>%
+  kable(digits = 3, format = "markdown")
+  
+```
+
+
+---
+
+## Poor vs. Excellent health {.smallish}
+
+```{r}
+#| echo: false
+tidy(health_m, conf.int = TRUE, exponentiate = FALSE) %>%
+  filter(y.level == "Poor") %>%
+  kable(digits = 3, format = "markdown")
+```
+
+::: nonincremental
+-   Baseline category of health rating is **Excellent**.
+-   Model equation: the log odds that a person rates themselves "Poor" vs "Excellent" health is
+
+::: poll
+$$\log\Big(\frac{\hat{\pi}_{Poor}}{\hat{\pi}_{Excellent}}\Big) = -3.567 + 0.031 \cdot \text{Age} + 1.669 \cdot \text{SleepTrouble}$$
+:::
+
+:::
+
+---
+
+## Interpretations
+
+::: incremental
+::: poll
+$$\log\Big(\frac{\hat{\pi}_{Poor}}{\hat{\pi}_{Excellent}}\Big) = -3.567 + 0.031 \cdot \text{Age} + 1.669 \cdot \text{SleepTrouble}$$
+:::
+For each additional year of age, the odds a person rates themselves as having poor health vs. excellent health are expected to multiply by 1.031 (exp(0.031)), holding sleep trouble constant.
+
+For those who have trouble sleeping, the odds they rate themselves as having poor health versus excellent health are expected to multiply by 5.306 (exp(1.669)), holding age constant. 
+:::
+
+
+---
+
+## Interpretations: intercept
+
+::: poll
+$$\log\Big(\frac{\hat{\pi}_{Poor}}{\hat{\pi}_{Excellent}}\Big) = -3.567 + 0.031 \cdot \text{Age} + 1.669 \cdot \text{SleepTrouble}$$
+:::
+
+::: question
+What is the interpretation for the intercept of this model, in terms of odds?
+:::
+
+---
+
+## Interpretations: intercept
+
+::: poll
+$$\log\Big(\frac{\hat{\pi}_{Poor}}{\hat{\pi}_{Excellent}}\Big) = -3.567 + 0.031 \cdot \text{Age} + 1.669 \cdot \text{SleepTrouble}$$
+:::
+
+::: nonincremental
+The odds a 0 year-old person without sleep trouble rates themselves as having poor health versus excellent health are 0.028 (exp(-3.567)).
+
+-   Would need to mean-center age for the intercept to have a meaningful interpretation.
+:::
+
+---
+
+## Confidence Interval for Sleep Trouble
+
+```{r}
+#| echo: false
+#| fig-width: 3
+tidy(health_m, conf.int = TRUE, exponentiate = FALSE) %>%
+  filter(y.level == "Poor") %>%
+  dplyr::select(y.level, term, estimate, p.value, 
+                conf.low, conf.high) %>%
+  kable(digits = 3, format = "markdown")
+```
+
+We are 95% confident that, if someone has trouble sleeping, the odds the person rates themselves as poor health vs excellent health will multiply by 3.735 (exp(1.318)) to 7.538 (exp(2.020)), holding age constant.
+
+---
+
+### Visualization: forest plots {.smaller}
+
+::: {.panel-tabset}
+
+### Code
+
+```{r}
+#| echo: true
+#| eval: false
+model_coef <- tidy(health_m, exponentiate = TRUE, conf.int = TRUE) %>%
+  filter(y.level =="Poor")
+ggplot(data = model_coef, aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_hline(yintercept = 1, lty = 2) + 
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high))+
+  labs(title = "Exponentiated model coefficients") + 
+  coord_flip()
+```
+
+### Output
+
+```{r}
+#| echo: false
+#| eval: true
+model_coef <- tidy(health_m, exponentiate = TRUE, conf.int = TRUE) %>%
+  filter(y.level =="Poor")
+ggplot(data = model_coef, aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_hline(yintercept = 1, lty = 2) + 
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high))+
+  labs(title = "Exponentiated model coefficients") + 
+  coord_flip()
+```
+
+:::
+
+---
+
+## Conclusion
+
+The data provide sufficient evidence that sleep trouble is a statistically significant predictor of rating oneself as "Poor" health vs. "Excellent", after accounting for age.
+
+The data provide sufficient evidence that age is a statistically significant predictor of rating oneself as "Poor" health vs. "Excellent", after accounting for sleep trouble.
+
+
+# Activity
+
+## Regression Bingo Game
+
+::: nonincremental
+- Pair up - two people per bingo card.
+- Each square on bingo card has a question.
+- "Answers" located throughout room. If you think you've found a correct answer, tear off answer and place it on the square. 
+  -   Write a note on your card about what the answer said
+- When you get bingo (3 in a row), shout it out and share your 3 question/answers. 
+- If you'd like to see any slide from this lecture, feel free to ask!
+
+:::
+
+
+---
+
+## Recap
+
+::: nonincremental
+-   Logistic regression in context of GLM
+-   Multinomial logistic regression + inference, health rating example
+-   Bingo game
+:::
+
+---
+
+## Acknowledgements
+
+::: nonincremental
+-   [BMLR Chapter 6](https://bookdown.org/roback/bookdown-BeyondMLR/ch-logreg.html#introduction-to-logistic-regression)
+
+-   [Introduction to Modern Statistics, Chapter 9](https://openintro-ims.netlify.app/model-logistic.html#model-logistic)
+
+-   [STA210: Regression Analysis](https://sta210-fa21.netlify.app/)
+
+:::
+
+
+# That's all, folks!
