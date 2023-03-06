@@ -10,7 +10,7 @@ headline: |
 
 For the slides to the sample lecture, go [here](./lecture2.html)
 
-For a bingo card, go [here](./online_bingo.pdf).
+For a bingo card, go [here](./bingo_online_card.pdf).
 
 hello 
 
